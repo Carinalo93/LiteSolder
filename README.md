@@ -1,21 +1,11 @@
-# LitePlacer
-LitePlacer Pick and Place machine user interface and control software
+![https://raw.githubusercontent.com/wiki/Carinalo93/LiteSolder/ref/Logo.png](https://raw.githubusercontent.com/wiki/Carinalo93/LiteSolder/ref/Logo.png)
 
-**See  http://www.liteplacer.com/ for information.**
+LiteSolder is an extension to [LitePlacer](https://github.com/jkuusama/LitePlacer-DEV) and is able to dispense solderpaste on PCB pads.
 
-[Introduction video on Youtube](https://www.youtube.com/watch?v=3c5Vtuefm7o)
+**See  http://www.liteplacer.com/ for information on LitePlacer**
 
-To get the code to compile: 
-
-* Install AForge.NET
-
-* In solution explorer-LitePlacer-References, delete references to Math.Net.Numerics and to HomographyEstimation.dll.
-
-* Add reference to <your LitePlacer software directory>/packages/HomographyEstimation/HomographyEstimation.dll
-
-* Run the following command in the Tools-NuGet Package Manager-Package Manager Console: PM> Install-Package MathNet.Numerics
-
-To avoid issues in debugging, turn off the "Enable property evaluation and other implicit function calls" option in Tools->Options->Debugging 
+[Introduction video on Youtube](link) is following
 
 Wiki for LiteSolder:
-https://github.com/Carinalo93/LiteSolder/wiki
+[LiteSolder information](https://github.com/Carinalo93/LiteSolder/wiki)
+
