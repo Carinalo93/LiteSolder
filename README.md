@@ -1,6 +1,5 @@
 
-![litesolder](https://user-images.githubusercontent.com/44228694/52347222-b629f080-2a21-11e9-8768-c68ef8ff4792.png)
-
+<img src="https://user-images.githubusercontent.com/44228694/52347222-b629f080-2a21-11e9-8768-c68ef8ff4792.png" width="410" height="74" title="Logo">
 
 LiteSolder is an extension to [LitePlacer](https://github.com/jkuusama/LitePlacer-DEV) and is able to dispense solderpaste on PCB pads.
 
