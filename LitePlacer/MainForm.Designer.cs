@@ -30,7 +30,7 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
             this.Park_button = new System.Windows.Forms.Button();
             this.TestNozzleRecognition_button = new System.Windows.Forms.Button();
             this.DownCamZoomFactor_textBox = new System.Windows.Forms.TextBox();
@@ -796,6 +796,7 @@
             this.zCalibrationInstructions = new System.Windows.Forms.Label();
             this.groupBox16 = new System.Windows.Forms.GroupBox();
             this.groupBox18 = new System.Windows.Forms.GroupBox();
+            this.RetractButton = new System.Windows.Forms.Button();
             this.label200 = new System.Windows.Forms.Label();
             this.label199 = new System.Windows.Forms.Label();
             this.label198 = new System.Windows.Forms.Label();
@@ -8433,14 +8434,14 @@
             this.JobData_GridView.AllowUserToAddRows = false;
             this.JobData_GridView.AllowUserToResizeRows = false;
             this.JobData_GridView.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
-            dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Control;
-            dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.2F);
-            dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.WindowText;
-            dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-            dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-            dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-            this.JobData_GridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+            dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.2F);
+            dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+            dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+            dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+            dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+            this.JobData_GridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle2;
             this.JobData_GridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.JobData_GridView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ComponentCount,
@@ -9427,6 +9428,7 @@
             // 
             // groupBox18
             // 
+            this.groupBox18.Controls.Add(this.RetractButton);
             this.groupBox18.Controls.Add(this.label200);
             this.groupBox18.Controls.Add(this.label199);
             this.groupBox18.Controls.Add(this.label198);
@@ -9448,6 +9450,16 @@
             this.groupBox18.TabIndex = 46;
             this.groupBox18.TabStop = false;
             this.groupBox18.Text = "Calibration";
+            // 
+            // RetractButton
+            // 
+            this.RetractButton.Location = new System.Drawing.Point(15, 55);
+            this.RetractButton.Name = "RetractButton";
+            this.RetractButton.Size = new System.Drawing.Size(89, 26);
+            this.RetractButton.TabIndex = 53;
+            this.RetractButton.Text = "Retract";
+            this.RetractButton.UseVisualStyleBackColor = true;
+            this.RetractButton.Click += new System.EventHandler(this.RetractButton_Click);
             // 
             // label200
             // 
@@ -9521,7 +9533,7 @@
             // 
             // ButtonMeasureXY
             // 
-            this.ButtonMeasureXY.Location = new System.Drawing.Point(15, 55);
+            this.ButtonMeasureXY.Location = new System.Drawing.Point(15, 85);
             this.ButtonMeasureXY.Name = "ButtonMeasureXY";
             this.ButtonMeasureXY.Size = new System.Drawing.Size(89, 26);
             this.ButtonMeasureXY.TabIndex = 44;
@@ -9558,7 +9570,7 @@
             // 
             // DispensePCB_measure
             // 
-            this.DispensePCB_measure.Location = new System.Drawing.Point(15, 85);
+            this.DispensePCB_measure.Location = new System.Drawing.Point(15, 115);
             this.DispensePCB_measure.Name = "DispensePCB_measure";
             this.DispensePCB_measure.Size = new System.Drawing.Size(89, 26);
             this.DispensePCB_measure.TabIndex = 40;
@@ -11495,6 +11507,7 @@
         private System.Windows.Forms.Label label203;
         private System.Windows.Forms.Label label202;
         private System.Windows.Forms.Label label201;
+        private System.Windows.Forms.Button RetractButton;
     }
 }
 

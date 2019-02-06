@@ -85,7 +85,7 @@ namespace LitePlacer
         // =================================================================================
 
         // We need "goto" to different features, currently circles, rectangles or both
-        public enum FeatureType { Circle, Rectangle, Both };
+        public enum FeatureType { Circle, Rectangle, Both};
 
         private static ManualResetEventSlim Cnc_ReadyEvent = new ManualResetEventSlim(false);
         // This event is raised in the CNC class, and we'll wait for it when we want to continue only after TinyG has stabilized
@@ -406,7 +406,7 @@ namespace LitePlacer
             tr4_dispense_textBox.Text = Setting.tr4_dispense.ToString("", CultureInfo.InvariantCulture);
 
             DispenseSpeed_textBox.Text = Setting.B_dispense_speed.ToString("", CultureInfo.InvariantCulture);
-            DispenseValue_textBox.Text = Setting.dispense_value.ToString("0.000", CultureInfo.InvariantCulture);
+            DispenseValue_textBox.Text = Setting.dispense_value.ToString("0.00000", CultureInfo.InvariantCulture);
             DispenseRetract_textBox.Text = Setting.dispense_retract.ToString("0.000", CultureInfo.InvariantCulture);
             NoztoPCB_textBox.Text = Setting.dispense_NozPcbZero.ToString("0.00", CultureInfo.InvariantCulture);
             DispenseOffset_textBox.Text = Setting.dispense_Offset.ToString("0.00", CultureInfo.InvariantCulture);
@@ -16151,18 +16151,19 @@ namespace LitePlacer
             }
         }
         public bool StopDispense = false;
-        private void DoSolderpasteDispense(List<PcbPad> PadsOnPcB, double NozToCamX, double NozToCamY)
+        private bool DoSolderpasteDispense(List<PcbPad> PadsOnPcB, double NozToCamX, double NozToCamY)
         {
+            double microAvalue = 0;
             DisplayText("!!!!!!!!Starting SolderpasteDispense!!!!!!!!!!");
-            if(currentPcbPads[0].X_machine == 0 && currentPcbPads[1].X_machine == 0)
+            if(PadsOnPcB[0].X_machine == 0 && PadsOnPcB[1].X_machine == 0)
             {
                 DisplayText($"Found no machine coordinates for pads. Do you used Measure PCB? - If you didn't want to use it, click the skip measurement checkbox in RunJob tabPage. Than click measure XY again. It will calculate the nominal pad positions in machine coordinates!");
-                return;
+                return false;
             }
-            CNC_A_m(Cnc.CurrentA - Setting.dispense_retract); // dispense solderpaste
+            //CNC_A_m(Cnc.CurrentA - Setting.dispense_retract); 
             if (Cnc.ErrorState)
             {
-                return;
+                return false;
             }
             ZGuardOff();
             for (int i = 0; i < PadsOnPcB.Count; i++)
@@ -16172,48 +16173,58 @@ namespace LitePlacer
                 if (Cnc.ErrorState)
                 {
                     ZGuardOn();
-                    return;
+                    return false;
                 }
                 CNC_Z_m(Setting.dispense_NozPcbZero - Setting.dispense_Offset); // move z down to pad
                 if (Cnc.ErrorState)
                 {
                     ZGuardOn();
-                    return;
+                    return false;
+                }
+                if (Setting.dispense_value < 0.001)
+                {
+                    microAvalue += Setting.dispense_value;
+                    if (microAvalue >= 0.002)
+                    {
+                        CNC_A_m(Cnc.CurrentA + microAvalue);
+                        microAvalue = 0;
+                    }
                 }
                 CNC_A_m(Cnc.CurrentA + Setting.dispense_value + Setting.dispense_retract); // dispense solderpaste
                 Thread.Sleep(500);
                 if (Cnc.ErrorState)
                 {
                     ZGuardOn();
-                    return;
+                    return false;
                 }
                 CNC_Z_m(Setting.dispense_NozPcbZero - 10);
                 if (Cnc.ErrorState)
                 {
                     ZGuardOn();
-                    return;
+                    return false;
                 }
-                CNC_A_m(Cnc.CurrentA - Setting.dispense_retract);
+                CNC_A_m(Cnc.CurrentA - Setting.dispense_retract);  // retract
                 if (Cnc.ErrorState || StopDispense)
                 {
                     ZGuardOn();
                     StopDispense = false;
-                    return;
+                    return false;
                 }
             }
-            CNC_A_m(Cnc.CurrentA + Setting.dispense_retract); // dispense solderpaste
+            //CNC_A_m(Cnc.CurrentA + Setting.dispense_retract); // dispense solderpaste
             CNC_Z_m(0);
             if (Cnc.ErrorState)
             {
                 ZGuardOn();
-                return;
+                return false;
             }
             CNC_XY_m(0, 0); // Go Back to Home
             if (Cnc.ErrorState)
             {
                 ZGuardOn();
-                return;
+                return false;
             }
+            return true;
         }
 
         private void Load_gbr_button_Click(object sender, EventArgs e)
@@ -16228,7 +16239,14 @@ namespace LitePlacer
                 DisplayText("No pads in file or no .gbr file loaded!");
                 return;
             }
-            DoSolderpasteDispense(currentPcbPads,Setting.dispenseNozOffsetX,Setting.dispenseNozOffsetY);
+            if (DoSolderpasteDispense(currentPcbPads, Setting.dispenseNozOffsetX, Setting.dispenseNozOffsetY))
+            {
+                DisplayText("Solderpaste operations successful.");
+            }
+            else
+            {
+                DisplayText("Solderpase operations failed!!!");
+            }
         }
 
         private void StopDispense__button_Click(object sender, EventArgs e)
@@ -16585,7 +16603,10 @@ namespace LitePlacer
 
             DisplayText("Dispense some solderpaste for nozzle measurement");
 
-            DoSolderpasteDispense(padsformeasure, Setting.dispenseNozOffsetX, Setting.dispenseNozOffsetY);
+            if(!DoSolderpasteDispense(padsformeasure, Setting.dispenseNozOffsetX, Setting.dispenseNozOffsetY))
+                {
+                return;
+                }
             //Move to last point with camera
             CNC_XY_m(padsformeasure[30].X_machine, padsformeasure[30].Y_machine);
 
@@ -16593,14 +16614,17 @@ namespace LitePlacer
             DisplayText("Measuring Nozzle XY");
             double X;
             double Y;
+            double A = 0.0;
 
             SetComponentsMeasurement();
             // Find within 10mm, goto within 0.05
-            if (!GoToFeatureLocation_m(FeatureType.Both, 10.0, 0.05, out X, out Y))
+            if (!GoToComponentLocation_m(10.0, 0.1, out X, out Y))
             {
-                DisplayText($"Measuring XY on PCB failed!");
+                DisplayText($"Measuring test pad on PCB failed!");
                 return;
             }
+
+            
 
             // Measure 7 times, get median: 
             SetComponentsMeasurement();
@@ -16609,11 +16633,13 @@ namespace LitePlacer
             int res;
             int Successes = 0;
             int Tries = 0;
+                       
             do
             {
                 Tries++;
-                res = DownCamera.GetClosestCircle(out X, out Y, 0.1 / Setting.DownCam_XmmPerPixel);
-                if (res == 1)
+                res = MeasureClosestComponentInPx(out X, out Y, out A, DownCamera, (5.0 / Setting.DownCam_XmmPerPixel), 10);
+                    
+                if (res >= 1)
                 {
                     Successes++;
 
@@ -16635,8 +16661,8 @@ namespace LitePlacer
             X = Xlist[3];
             Y = Ylist[3];
             //Calculate the distances between the camera(=currentX) - the estimated solderpaste point + plus the median optical measurement
-            X = Cnc.CurrentX + X - padsformeasure[30].X_machine + Setting.dispenseNozOffsetX; 
-            Y = Cnc.CurrentY + Y - padsformeasure[30].Y_machine + Setting.dispenseNozOffsetY;
+            X = padsformeasure[30].X_machine - (Cnc.CurrentX + X) + Setting.dispenseNozOffsetX; 
+            Y = padsformeasure[30].Y_machine - (Cnc.CurrentY + Y) + Setting.dispenseNozOffsetY;
 
             Setting.dispenseNozOffsetX = X;
             Setting.dispenseNozOffsetY = Y;
@@ -16644,7 +16670,7 @@ namespace LitePlacer
             NozOffsetX_textBox.Text = X.ToString("0.00");
             NozOffsetY_textBox.Text = Y.ToString("0.00");
 
-            DialogResult dialog = ShowMessageBox("NozToCamX:"+ X.ToString("0.00") +  "NozToCamY: " + Y.ToString("0.00"), "XY-Calibrations", MessageBoxButtons.OK);
+            DialogResult dialog = ShowMessageBox("NozToCamX: "+ X.ToString("0.00") +  " NozToCamY: " + Y.ToString("0.00"), "XY-Calibrations", MessageBoxButtons.OK);
             DisplayText($"Measurement XY successful!");
         }
 
@@ -16741,7 +16767,87 @@ namespace LitePlacer
                 }
             }
         }
-        
+
+        private void RetractButton_Click(object sender, EventArgs e)
+        {
+            CNC_A_m(Cnc.CurrentA - Setting.dispense_retract);
+        }
+
+        public bool GoToComponentLocation_m(double FindTolerance, double MoveTolerance, out double X, out double Y)
+        {
+            DisplayText("GoToComponentLocation_m(), FindTolerance: " + FindTolerance.ToString() + ", MoveTolerance: " + MoveTolerance.ToString());
+            SelectCamera(DownCamera);
+            X = 100;
+            Y = 100;
+            double A = 0.0;
+            FindTolerance = FindTolerance / Setting.DownCam_XmmPerPixel;
+            if (!DownCamera.IsRunning())
+            {
+                ShowMessageBox(
+                    "Attempt to find component, downcamera is not running.",
+                    "Camera not running",
+                    MessageBoxButtons.OK);
+                return false;
+            }
+            int count = 0;
+            int res = 0;
+            int tries = 0;
+            SetComponentsMeasurement();
+            bool ProcessingStateSave = DownCamera.PauseProcessing;
+            DownCamera.PauseProcessing = true;
+            double zoom = DownCamera.GetMeasurementZoom();
+            
+            do
+            {
+                // Measure location
+                for (tries = 0; tries < 8; tries++)
+                {
+                    res = DownCamera.GetClosestComponent(out X, out Y, out A, FindTolerance * zoom);
+
+                    if (res != 0)
+                    {
+                        break;
+                    }
+                    Thread.Sleep(80); // next frame + vibration damping
+                    if (tries >= 7)
+                    {
+                        DisplayText("Failed in 8 tries.");
+                        ShowMessageBox(
+                            "Optical positioning: Can't find Component",
+                            "No found",
+                            MessageBoxButtons.OK);
+                        DownCamera.PauseProcessing = ProcessingStateSave;
+                        return false;
+                    }
+                }
+                X = X * Setting.DownCam_XmmPerPixel;
+                Y = -Y * Setting.DownCam_YmmPerPixel;
+                DisplayText("Optical positioning, round " + count.ToString() + ", dX= " + X.ToString() + ", dY= " + Y.ToString() + ", tries= " + tries.ToString());
+                // If we are further than move tolerance, go there
+                if ((Math.Abs(X) > MoveTolerance) || (Math.Abs(Y) > MoveTolerance))
+                {
+                    if (!CNC_XY_m(Cnc.CurrentX + X, Cnc.CurrentY + Y))
+                    {
+                        return false;
+                    }
+                }
+                count++;
+            }  // repeat this until we didn't need to move
+            while ((count < 8)
+                && ((Math.Abs(X) > MoveTolerance)
+                || (Math.Abs(Y) > MoveTolerance)));
+
+            DownCamera.PauseProcessing = ProcessingStateSave;
+            if (count >= 7)
+            {
+                ShowMessageBox(
+                    "Optical positioning: Process is unstable, result is unreliable!",
+                    "Count exeeded",
+                    MessageBoxButtons.OK);
+                return false;
+            }
+            return true;
+        }
     }
 
 

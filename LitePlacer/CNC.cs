@@ -543,7 +543,7 @@ namespace LitePlacer
 
         public void A(double A)
         {
-            if (Math.Abs(A - CurrentA) < 0.01)
+            if (Math.Abs(A - CurrentA) < 0.001)
             {
                 MainForm.DisplayText(" -- zero A movement command --");
                 _readyEvent.Set();
